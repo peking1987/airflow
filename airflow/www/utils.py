@@ -442,11 +442,17 @@ class AceEditorWidget(wtforms.widgets.TextArea):
         )
         return wtforms.widgets.core.HTMLString(html)
 
-
 class UtcDateTimeFilterMixin(object):
     def clean(self, value):
         dt = super(UtcDateTimeFilterMixin, self).clean(value)
-        return timezone.make_aware(dt, timezone=timezone.utc)
+        if isinstance(dt, list):
+            # fix date between bug:  'list' object has no attribute 'utcoffset'
+            result = []
+            for item in dt:
+                result.append(timezone.make_aware(item, timezone=timezone.utc))
+            return result
+        else:
+            return timezone.make_aware(dt, timezone=timezone.utc)
 
 
 class UtcDateTimeEqualFilter(UtcDateTimeFilterMixin, sqlafilters.DateTimeEqualFilter):
